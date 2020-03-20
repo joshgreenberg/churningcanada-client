@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <span v-if="products.length === 0">Loading...</span>
     <ul>
       <li v-for="product in products" :key="product.name">
         <router-link :to="product.slug">

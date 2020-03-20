@@ -33,14 +33,14 @@
               'diff-line-has-changes': line.prev !== line.cur,
             }"
           >
-            <td class="diff-prev">
+            <td :class="{'diff-prev': line.prev}">
               <span v-for="(phrase, i) in line.prevDiffs" :key="i">
                 <span :class="{'diff-chunk-removed': phrase.removed}">{{
                   phrase.value
                 }}</span>
               </span>
             </td>
-            <td class="diff-cur">
+            <td :class="{'diff-cur': line.cur}">
               <span v-for="(phrase, i) in line.curDiffs" :key="i">
                 <span :class="{'diff-chunk-added': phrase.added}">{{
                   phrase.value
@@ -104,6 +104,22 @@ export default {
       return this.product.offers.slice(1)
     },
     diff() {
+      if (!this.prev.footnotes) {
+        return [
+          {
+            cur: this.cur.footnotes,
+            curDiffs: [{count: 1, value: this.cur.footnotes}],
+          },
+        ]
+      }
+      if (!this.cur.footnotes) {
+        return [
+          {
+            prev: this.prev.footnotes,
+            prevDiffs: [{count: 1, value: this.prev.footnotes}],
+          },
+        ]
+      }
       const lines = []
       const lineDiffs = Diff.diffLines(this.prev.footnotes, this.cur.footnotes)
       lineDiffs.forEach(diff => {
