@@ -1,25 +1,27 @@
 <template>
   <div>
-    <h1>{{ product.name }}</h1>
-    <div>
-      <a :href="product.url">View current offer</a>
-    </div>
-    <div>Last update: {{ date(cur) }}</div>
-    <div>
-      <h4>Previous updates:</h4>
-      <ul>
-        <li v-for="offer in pastOffers" :key="offer.id">
-          <label>
-            <input
-              type="radio"
-              name="prevOffer"
-              :value="offer"
-              v-model="prev"
-            />
-            {{ date(offer) }}
-          </label>
-        </li>
-      </ul>
+    <div class="header">
+      <h1>{{ product.name }}</h1>
+      <div>
+        <a :href="product.url">View current offer</a>
+      </div>
+      <div>Most recent update: {{ date(cur) }}</div>
+      <div>
+        <h4>Previous updates:</h4>
+        <ul>
+          <li v-for="offer in pastOffers" :key="offer.id">
+            <label>
+              <input
+                type="radio"
+                name="prevOffer"
+                :value="offer"
+                v-model="prev"
+              />
+              {{ date(offer) }}
+            </label>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="diff-container">
       <table class="diff-table">
@@ -28,27 +30,21 @@
             v-for="(line, i) in diff"
             :key="i"
             :class="{
-              'diff-line-has-changes':
-                line.wordDiffs.some(d => d.added) ||
-                line.wordDiffs.some(d => d.removed),
+              'diff-line-has-changes': line.prev !== line.cur,
             }"
           >
             <td class="diff-prev">
-              <span v-for="(phrase, i) in line.wordDiffs" :key="i">
-                <span
-                  v-if="!phrase.added"
-                  :class="{'diff-chunk-removed': phrase.removed}"
-                  >{{ phrase.value }}</span
-                >
+              <span v-for="(phrase, i) in line.prevDiffs" :key="i">
+                <span :class="{'diff-chunk-removed': phrase.removed}">{{
+                  phrase.value
+                }}</span>
               </span>
             </td>
             <td class="diff-cur">
-              <span v-for="(phrase, i) in line.wordDiffs" :key="i">
-                <span
-                  v-if="!phrase.removed"
-                  :class="{'diff-chunk-added': phrase.added}"
-                  >{{ phrase.value }}</span
-                >
+              <span v-for="(phrase, i) in line.curDiffs" :key="i">
+                <span :class="{'diff-chunk-added': phrase.added}">{{
+                  phrase.value
+                }}</span>
               </span>
             </td>
           </tr>
@@ -61,6 +57,31 @@
 <script>
 import moment from 'moment'
 const Diff = require('diff')
+
+const squashTokens = [' ', ', ', '.']
+
+const squashDiffs = chunks => {
+  let pointer = 0
+  while (pointer < chunks.length) {
+    const chunk = chunks[pointer]
+    if (chunk.count === 1 && (chunk.added || chunk.removed)) {
+      let nextChunk = chunks[pointer + 1]
+      while (
+        (squashTokens.includes(nextChunk.value) &&
+          !nextChunk.removed &&
+          !nextChunk.added) ||
+        (chunk.added && nextChunk.added) ||
+        (chunk.removed && nextChunk.removed)
+      ) {
+        chunk.value += nextChunk.value
+        chunks.splice(pointer + 1, 1)
+        nextChunk = chunks[pointer + 1]
+      }
+    }
+    pointer++
+  }
+  return chunks
+}
 
 export default {
   name: 'Product',
@@ -110,9 +131,14 @@ export default {
         }
       })
 
-      const wordDiffs = []
       lines.forEach(line => {
-        line.wordDiffs = Diff.diffWords(line.prev, line.cur)
+        const wordDiffs = Diff.diffWords(line.prev, line.cur)
+
+        const prevChunks = wordDiffs.filter(d => !d.added)
+        const curChunks = wordDiffs.filter(d => !d.removed)
+
+        line.prevDiffs = squashDiffs(prevChunks)
+        line.curDiffs = squashDiffs(curChunks)
       })
       return lines
     },
@@ -131,6 +157,22 @@ export default {
 </script>
 
 <style>
+.header {
+  position: sticky;
+  top: 0;
+  background: white;
+  box-shadow: 0 20px 20px -20px black;
+  padding: 20px;
+}
+h1 {
+  margin: 0;
+}
+.diff-container {
+  margin: 20px 10px;
+}
+.diff-table {
+  width: 100%;
+}
 .diff-table td {
   width: 50%;
   vertical-align: top;

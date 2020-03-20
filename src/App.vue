@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <div id="nav">
+      <router-link :to="{name: 'Home'}">Home</router-link>
+    </div>
     <router-view />
   </div>
 </template>
@@ -21,7 +24,7 @@ export default {
 }
 
 #nav {
-  padding: 30px;
+  padding: 10px;
 }
 
 #nav a {
@@ -29,7 +32,7 @@ export default {
   color: #2c3e50;
 }
 
-#nav a.router-link-exact-active {
+a {
   color: #42b983;
 }
 </style>
