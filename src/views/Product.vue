@@ -27,24 +27,28 @@
       <table class="diff-table">
         <tbody>
           <tr
-            v-for="(line, i) in diff"
+            v-for="(line, i) in lines"
             :key="i"
             :class="{
-              'diff-line-has-changes': line.prev !== line.cur,
+              'diff-line-has-changes': line.before !== line.after,
             }"
           >
-            <td :class="{'diff-prev': line.prev}">
-              <span v-for="(phrase, i) in line.prevDiffs" :key="i">
-                <span :class="{'diff-chunk-removed': phrase.removed}">{{
-                  phrase.value
-                }}</span>
+            <td :class="{'diff-line-removed': line.before}">
+              <span
+                v-for="(chunk, j) in line.oldChunks"
+                :key="j"
+                :class="{'diff-chunk-removed': chunk.removed}"
+              >
+                {{ chunk.value }}
               </span>
             </td>
-            <td :class="{'diff-cur': line.cur}">
-              <span v-for="(phrase, i) in line.curDiffs" :key="i">
-                <span :class="{'diff-chunk-added': phrase.added}">{{
-                  phrase.value
-                }}</span>
+            <td :class="{'diff-line-added': line.after}">
+              <span
+                v-for="(chunk, j) in line.newChunks"
+                :key="j"
+                :class="{'diff-chunk-added': chunk.added}"
+              >
+                {{ chunk.value }}
               </span>
             </td>
           </tr>
@@ -56,39 +60,16 @@
 
 <script>
 import moment from 'moment'
-const Diff = require('diff')
+import patience from '@/../lib/patience'
 
-const squashTokens = [' ', ', ', '.']
-
-const squashDiffs = chunks => {
-  let pointer = 0
-  while (pointer < chunks.length) {
-    const chunk = chunks[pointer]
-    if (chunk.count === 1 && (chunk.added || chunk.removed)) {
-      let nextChunk = chunks[pointer + 1]
-      while (
-        (squashTokens.includes(nextChunk.value) &&
-          !nextChunk.removed &&
-          !nextChunk.added) ||
-        (chunk.added && nextChunk.added) ||
-        (chunk.removed && nextChunk.removed)
-      ) {
-        chunk.value += nextChunk.value
-        chunks.splice(pointer + 1, 1)
-        nextChunk = chunks[pointer + 1]
-      }
-    }
-    pointer++
-  }
-  return chunks
-}
+const transpose = a => a[0].map((b, c) => a.map(r => r[c]))
 
 export default {
   name: 'Product',
   components: {},
   data() {
     return {
-      prev: {summary: '', footnotes: ''},
+      prev: {footnotes: []},
     }
   },
   computed: {
@@ -103,60 +84,45 @@ export default {
     pastOffers() {
       return this.product.offers.slice(1)
     },
-    diff() {
-      if (!this.prev.footnotes) {
-        return [
-          {
-            cur: this.cur.footnotes,
-            curDiffs: [{count: 1, value: this.cur.footnotes}],
-          },
-        ]
+    lines() {
+      if (!this.prev.footnotes.length) {
+        return this.cur.footnotes.map(str => ({
+          after: str,
+          newChunks: [{count: 1, value: str}],
+        }))
       }
-      if (!this.cur.footnotes) {
-        return [
-          {
-            prev: this.prev.footnotes,
-            prevDiffs: [{count: 1, value: this.prev.footnotes}],
-          },
-        ]
+      if (!this.cur.footnotes.length) {
+        return this.prev.footnotes.map(str => ({
+          before: str,
+          oldChunks: [{count: 1, value: str}],
+        }))
       }
-      const lines = []
-      const lineDiffs = Diff.diffLines(this.prev.footnotes, this.cur.footnotes)
-      lineDiffs.forEach(diff => {
-        if (!diff.added && !diff.removed) {
-          const values = diff.value.split('\n')
-          for (let i = 0; i < diff.count; i++) {
-            lines.push({
-              prev: values[i],
-              cur: values[i],
-            })
+
+      const lines = patience.align(
+        this.prev.footnotes,
+        this.cur.footnotes,
+        /(?<=\.)\s+/g
+      )
+
+      const rejoinedLines = lines.map(([bef, aft]) => [
+        bef.join(' ').trim(),
+        aft.join(' ').trim(),
+      ])
+
+      const lineObjects = rejoinedLines
+        .filter(l => l[0] || l[1])
+        .map(([before, after]) => {
+          const sentences = patience.sentencePairs(before, after)
+          const chunks = sentences.map(sen => patience.wordDiff(...sen)).flat()
+          return {
+            before,
+            after,
+            oldChunks: chunks.filter(diff => !diff.added),
+            newChunks: chunks.filter(diff => !diff.removed),
           }
-        } else if (diff.removed) {
-          lines.push({prev: diff.value})
-        } else if (diff.added) {
-          if (lines.length > 0) {
-            const lastLine = lines[lines.length - 1]
-            if (lastLine.added) {
-              lines.push({cur: diff.value})
-            } else {
-              lastLine.cur = diff.value
-            }
-          } else {
-            lines.push({prev: '', cur: diff.value})
-          }
-        }
-      })
+        })
 
-      lines.forEach(line => {
-        const wordDiffs = Diff.diffWords(line.prev, line.cur)
-
-        const prevChunks = wordDiffs.filter(d => !d.added)
-        const curChunks = wordDiffs.filter(d => !d.removed)
-
-        line.prevDiffs = squashDiffs(prevChunks)
-        line.curDiffs = squashDiffs(curChunks)
-      })
-      return lines
+      return lineObjects
     },
   },
   methods: {
@@ -193,10 +159,10 @@ h1 {
   width: 50%;
   vertical-align: top;
 }
-.diff-table .diff-line-has-changes .diff-prev {
+.diff-table .diff-line-has-changes .diff-line-removed {
   background: rgb(255, 196, 193);
 }
-.diff-table .diff-line-has-changes .diff-cur {
+.diff-table .diff-line-has-changes .diff-line-added {
   background: rgb(181, 239, 219);
 }
 .diff-table .diff-chunk-removed {

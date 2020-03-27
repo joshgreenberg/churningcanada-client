@@ -14,6 +14,11 @@ const routes = [
     component: Home,
   },
   {
+    path: '/diff',
+    name: 'Diff',
+    component: () => import('../components/Diff.vue'),
+  },
+  {
     path: '/:product',
     name: 'Product',
     component: () => import('../views/Product.vue'),
