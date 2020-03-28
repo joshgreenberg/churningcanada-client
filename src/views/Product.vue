@@ -1,26 +1,29 @@
 <template>
   <div>
     <div class="header">
-      <h1>{{ product.name }}</h1>
-      <div>
-        <a :href="product.url">View current offer</a>
+      <router-link :to="{name: 'Home'}" class="back">Back</router-link>
+      <div class="center">
+        <h1>{{ product.name }}</h1>
+        <div>
+          <a :href="product.url" target="_blank">View current offer</a>
+        </div>
       </div>
-      <div>Most recent update: {{ date(cur) }}</div>
-      <div>
-        <h4>Previous updates:</h4>
-        <ul>
-          <li v-for="offer in pastOffers" :key="offer.id">
-            <label>
-              <input
-                type="radio"
-                name="prevOffer"
+      <div class="flex">
+        <div>
+          <div v-if="pastOffers.length">
+            Previous update:
+            <select v-model="prev">
+              <option
+                v-for="offer in pastOffers"
+                :key="offer.id"
                 :value="offer"
-                v-model="prev"
-              />
-              {{ date(offer) }}
-            </label>
-          </li>
-        </ul>
+              >
+                {{ date(offer) }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>Recent update: {{ date(cur) }}</div>
       </div>
     </div>
     <div class="diff-container">
@@ -139,6 +142,24 @@ export default {
 </script>
 
 <style>
+.back {
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  text-decoration: none;
+  font-weight: 200;
+}
+.back:before {
+  content: '';
+  border-width: 0 0 1px 1px;
+  border-style: solid;
+  border-color: #42b983;
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  position: relative;
+  transform: rotate(45deg);
+  font-size: 0.6em;
+}
 .header {
   position: sticky;
   top: 0;
@@ -147,7 +168,15 @@ export default {
   padding: 20px;
 }
 h1 {
-  margin: 0;
+  margin: 10px 0 0 0;
+}
+.center {
+  text-align: center;
+  marign: 10px 0;
+}
+.flex {
+  display: flex;
+  justify-content: space-around;
 }
 .diff-container {
   margin: 20px 10px;

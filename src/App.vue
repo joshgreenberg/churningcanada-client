@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link :to="{name: 'Home'}">Home</router-link>
-    </div>
     <router-view />
   </div>
 </template>
@@ -23,16 +20,12 @@ export default {
   color: #2c3e50;
 }
 
-#nav {
-  padding: 10px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
 a {
   color: #42b983;
+  font-weight: 500;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }
 </style>
