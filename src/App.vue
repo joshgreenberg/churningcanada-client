@@ -21,7 +21,7 @@ export default {
 }
 
 a {
-  color: #42b983;
+  color: #a17ac6;
   font-weight: 500;
   text-decoration: none;
 }
