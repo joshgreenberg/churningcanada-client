@@ -152,7 +152,7 @@ export default {
   content: '';
   border-width: 0 0 1px 1px;
   border-style: solid;
-  border-color: #42b983;
+  border-color: #a17ac6;
   width: 1em;
   height: 1em;
   display: inline-block;
