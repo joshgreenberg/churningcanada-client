@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div v-if="!product">Loading...</div>
     <div class="header">
       <router-link :to="{name: 'Home'}" class="back">Back</router-link>
       <div class="center">
