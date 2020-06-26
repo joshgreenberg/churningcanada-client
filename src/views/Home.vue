@@ -3,24 +3,64 @@
     <h1>
       Offers
     </h1>
-    <span v-if="products.length === 0">Loading...</span>
-    <ul>
-      <li v-for="product in products" :key="product.name">
-        <router-link :to="product.slug">
-          {{ product.name }}
-        </router-link>
-      </li>
-    </ul>
+    <div v-if="products.length === 0">Loading...</div>
+    <div v-else>
+      <input type="text" v-model="search" placeholder="Filter by name" />
+      <table class="table is-striped">
+        <thead>
+          <tr>
+            <th>Card / Offer</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="product in filteredProducts"
+            :key="product.name"
+            :class="{
+              expired: recentOffer(product).footnotes.length == 0,
+            }"
+          >
+            <td class="left">
+              <router-link :to="product.slug">
+                {{ product.name }}
+              </router-link>
+            </td>
+            <td>{{ date(recentOffer(product)) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script>
+import moment from 'moment'
+
 export default {
   name: 'Home',
   components: {},
+  data() {
+    return {
+      search: '',
+    }
+  },
   computed: {
     products() {
       return this.$store.state.products
+    },
+    filteredProducts() {
+      return this.products.filter(p =>
+        p.name.toLowerCase().includes(this.search.toLowerCase())
+      )
+    },
+  },
+  methods: {
+    recentOffer(product) {
+      return product.offers[0]
+    },
+    date(offer) {
+      return moment(offer.timestamp * 1000).format('YYYY-MM-DD')
     },
   },
 }
@@ -29,15 +69,16 @@ export default {
 <style>
 .home {
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
-.home h1 {
-  margin: 10px;
+.home .table {
+  margin: auto;
 }
-.home ul {
-  margin: 5px;
-  padding: 0;
+.home .table td.left {
+  text-align: left;
 }
-.home li {
-  list-style: none;
+.expired {
+  color: lightgrey;
 }
 </style>
