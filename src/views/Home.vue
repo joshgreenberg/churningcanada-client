@@ -78,7 +78,8 @@ export default {
 .home .table td.left {
   text-align: left;
 }
-.expired {
+.expired,
+.expired * {
   color: lightgrey;
 }
 </style>
