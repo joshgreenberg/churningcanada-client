@@ -173,7 +173,7 @@ h1 {
 }
 .center {
   text-align: center;
-  marign: 10px 0;
+  margin: 10px 0;
 }
 .flex {
   display: flex;
