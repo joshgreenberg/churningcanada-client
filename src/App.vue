@@ -28,4 +28,7 @@ a {
 a:hover {
   text-decoration: underline;
 }
+a.expired {
+  color: lightgrey;
+}
 </style>
