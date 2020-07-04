@@ -70,8 +70,12 @@ export default {
 .home .table {
   margin: auto;
 }
+.home .table td {
+  vertical-align: top;
+}
 .home .table td.left {
   text-align: left;
+  max-width: 320px;
 }
 .expired,
 .expired * {
