@@ -28,4 +28,7 @@ a {
 a:hover {
   text-decoration: underline;
 }
+input {
+  font-size: 16pt;
+}
 </style>
