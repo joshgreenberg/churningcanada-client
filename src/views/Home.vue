@@ -45,7 +45,7 @@ export default {
   },
   computed: {
     products() {
-      return this.$store.state.products
+      return this.$store.state.products.filter(p => p.offers.length > 0)
     },
     filteredProducts() {
       return this.products.filter(p =>

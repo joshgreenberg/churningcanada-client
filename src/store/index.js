@@ -16,6 +16,12 @@ export default new Vuex.Store({
   actions: {
     async init({commit}) {
       await api.get('/').then(({data}) => {
+        data.forEach(product => {
+          if (product.url.match(/^REFERRAL_URL_/)) {
+            const slug = product.slug.replace(/-referral$/, '')
+            product.url = `${process.env.VUE_APP_SERVER_URL}/r/${slug}`
+          }
+        })
         commit('setProducts', data)
       })
     },
