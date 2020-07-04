@@ -26,7 +26,7 @@
                 {{ product.name }}
               </router-link>
             </td>
-            <td>{{ recentOffer(product).date }}</td>
+            <td class="date">{{ recentOffer(product).date }}</td>
           </tr>
         </tbody>
       </table>
@@ -69,13 +69,22 @@ export default {
 }
 .home .table {
   margin: auto;
+  max-width: 30em;
+}
+.home .table thead {
+  background-color: #e6efe9;
+}
+.home .table tbody tr:nth-child(even) {
+  background-color: #f7fff7;
 }
 .home .table td {
   vertical-align: top;
 }
 .home .table td.left {
   text-align: left;
-  max-width: 320px;
+}
+.home .table td.date {
+  min-width: 7em;
 }
 .expired,
 .expired * {
