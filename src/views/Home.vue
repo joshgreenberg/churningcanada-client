@@ -26,7 +26,7 @@
                 {{ product.name }}
               </router-link>
             </td>
-            <td>{{ date(recentOffer(product)) }}</td>
+            <td>{{ recentOffer(product).date }}</td>
           </tr>
         </tbody>
       </table>
@@ -35,8 +35,6 @@
 </template>
 
 <script>
-import moment from 'moment'
-
 export default {
   name: 'Home',
   components: {},
@@ -58,9 +56,6 @@ export default {
   methods: {
     recentOffer(product) {
       return product.offers[0]
-    },
-    date(offer) {
-      return moment(offer.timestamp * 1000).format('YYYY-MM-DD')
     },
   },
 }

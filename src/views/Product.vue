@@ -19,12 +19,12 @@
                 :key="offer.id"
                 :value="offer"
               >
-                {{ date(offer) }}
+                {{ offer.date }}
               </option>
             </select>
           </div>
         </div>
-        <div>Recent update: {{ date(cur) }}</div>
+        <div>Recent update: {{ cur.date }}</div>
       </div>
     </div>
     <div class="diff-container">
@@ -63,7 +63,6 @@
 </template>
 
 <script>
-import moment from 'moment'
 import patience from '@/../lib/patience'
 
 const transpose = a => a[0].map((b, c) => a.map(r => r[c]))
@@ -127,11 +126,6 @@ export default {
         })
 
       return lineObjects
-    },
-  },
-  methods: {
-    date(offer) {
-      return moment(offer.timestamp * 1000).format('YYYY-MM-DD')
     },
   },
   created() {
