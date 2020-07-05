@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home-page">
     <h1>
       Offers
     </h1>
@@ -14,20 +14,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr
+          <OfferRow
             v-for="product in filteredProducts"
-            :key="product.name"
-            :class="{
-              expired: recentOffer(product).footnotes.length == 0,
-            }"
-          >
-            <td class="left">
-              <router-link :to="product.slug">
-                {{ product.name }}
-              </router-link>
-            </td>
-            <td class="date">{{ recentOffer(product).date }}</td>
-          </tr>
+            :key="product.slug"
+            :product="product"
+          />
         </tbody>
       </table>
     </div>
@@ -35,9 +26,13 @@
 </template>
 
 <script>
+import OfferRow from '@/components/OfferRow'
+
 export default {
   name: 'Home',
-  components: {},
+  components: {
+    OfferRow,
+  },
   data() {
     return {
       search: '',
@@ -53,41 +48,36 @@ export default {
       )
     },
   },
-  methods: {
-    recentOffer(product) {
-      return product.offers[0]
-    },
-  },
 }
 </script>
 
 <style>
-.home {
+.home-page {
   text-align: center;
   display: flex;
   flex-direction: column;
 }
-.home .table {
+.home-page .table {
   margin: auto;
   max-width: 30em;
 }
-.home .table thead {
+.home-page .table thead {
   background-color: #e6efe9;
 }
-.home .table tbody tr:nth-child(even) {
+.home-page .table tbody tr:nth-child(even) {
   background-color: #f7fff7;
 }
-.home .table td {
+.home-page .table td {
   vertical-align: top;
 }
-.home .table td.left {
+.home-page .table td.left {
   text-align: left;
 }
-.home .table td.date {
+.home-page .table td.date {
   min-width: 7em;
 }
-.expired,
-.expired * {
+.home-page .expired,
+.home-page .expired * {
   color: lightgrey;
 }
 </style>

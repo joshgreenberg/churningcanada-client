@@ -1,58 +1,56 @@
 <template>
-  <div>
+  <div class="offer-page">
     <div v-if="!product">Loading...</div>
     <div class="header">
       <router-link :to="{name: 'Home'}" class="back">Back</router-link>
-      <div class="center">
-        <h1>{{ product.name }}</h1>
-        <div>
-          <a :href="product.url" target="_blank">View current offer</a>
-        </div>
-      </div>
-      <div class="flex">
-        <div>
-          <div v-if="pastOffers.length">
-            Previous update:
-            <select v-model="prev">
-              <option
-                v-for="offer in pastOffers"
-                :key="offer.id"
-                :value="offer"
-              >
-                {{ offer.date }}
-              </option>
-            </select>
+      <div v-if="product">
+        <div class="center">
+          <h1>{{ product.name }}</h1>
+          <div>
+            <a :href="product.url" target="_blank">View current offer</a>
           </div>
         </div>
-        <div>Recent update: {{ cur.date }}</div>
+        <div class="flex">
+          <div>
+            <div v-if="pastOffers.length">
+              Previous update:
+              <select v-model="prev">
+                <option
+                  v-for="offer in pastOffers"
+                  :key="offer.id"
+                  :value="offer"
+                >
+                  {{ offer.date }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div>Recent update: {{ cur.date }}</div>
+        </div>
       </div>
     </div>
-    <div class="diff-container">
+    <div class="diff-container" v-if="product">
       <table class="diff-table">
         <tbody>
-          <tr
-            v-for="(line, i) in lines"
-            :key="i"
-            :class="{
-              'diff-line-has-changes': line.before !== line.after,
-            }"
-          >
-            <td :class="{'diff-line-removed': line.before}">
-              <span
-                v-for="(chunk, j) in line.oldChunks"
-                :key="j"
-                :class="{'diff-chunk-removed': chunk.removed}"
-              >
-                {{ chunk.value }}
+          <tr v-for="(line, i) in lines" :key="i">
+            <td :class="{'diff-line-removed': line.some(l => l.removed)}">
+              <span v-for="(chunk, j) in line" :key="j">
+                <span
+                  v-if="!chunk.added"
+                  :class="{'diff-chunk-removed': chunk.removed}"
+                >
+                  {{ chunk.value }}
+                </span>
               </span>
             </td>
-            <td :class="{'diff-line-added': line.after}">
-              <span
-                v-for="(chunk, j) in line.newChunks"
-                :key="j"
-                :class="{'diff-chunk-added': chunk.added}"
-              >
-                {{ chunk.value }}
+            <td :class="{'diff-line-added': line.some(l => l.added)}">
+              <span v-for="(chunk, j) in line" :key="j">
+                <span
+                  v-if="!chunk.removed"
+                  :class="{'diff-chunk-added': chunk.added}"
+                >
+                  {{ chunk.value }}
+                </span>
               </span>
             </td>
           </tr>
@@ -63,9 +61,7 @@
 </template>
 
 <script>
-import patience from '@/../lib/patience'
-
-const transpose = a => a[0].map((b, c) => a.map(r => r[c]))
+import diff from '@/lib/diff'
 
 export default {
   name: 'Product',
@@ -78,7 +74,7 @@ export default {
   computed: {
     product() {
       return this.$store.state.products.find(
-        p => p.slug === this.$route.params.product
+        p => p.slug === this.$route.params.slug
       )
     },
     cur() {
@@ -88,44 +84,9 @@ export default {
       return this.product.offers.slice(1)
     },
     lines() {
-      if (!this.prev.footnotes.length) {
-        return this.cur.footnotes.map(str => ({
-          after: str,
-          newChunks: [{count: 1, value: str}],
-        }))
-      }
-      if (!this.cur.footnotes.length) {
-        return this.prev.footnotes.map(str => ({
-          before: str,
-          oldChunks: [{count: 1, value: str}],
-        }))
-      }
-
-      const lines = patience.align(
-        this.prev.footnotes,
-        this.cur.footnotes,
-        /(?<=\.)\s+/g
-      )
-
-      const rejoinedLines = lines.map(([bef, aft]) => [
-        bef.join(' ').trim(),
-        aft.join(' ').trim(),
-      ])
-
-      const lineObjects = rejoinedLines
-        .filter(l => l[0] || l[1])
-        .map(([before, after]) => {
-          const sentences = patience.sentencePairs(before, after)
-          const chunks = sentences.map(sen => patience.wordDiff(...sen)).flat()
-          return {
-            before,
-            after,
-            oldChunks: chunks.filter(diff => !diff.added),
-            newChunks: chunks.filter(diff => !diff.removed),
-          }
-        })
-
-      return lineObjects
+      const a = this.prev.footnotes
+      const b = this.cur.footnotes
+      return diff(a, b)
     },
   },
   created() {
@@ -137,13 +98,13 @@ export default {
 </script>
 
 <style>
-.back {
-  margin-bottom: 10px;
+.offer-page .back {
   font-size: 1.2em;
   text-decoration: none;
   font-weight: 200;
+  position: absolute;
 }
-.back:before {
+.offer-page .back:before {
   content: '';
   border-width: 0 0 1px 1px;
   border-style: solid;
@@ -155,44 +116,54 @@ export default {
   transform: rotate(45deg);
   font-size: 0.6em;
 }
-.header {
+.offer-page .header {
   position: sticky;
   top: 0;
   background: white;
   box-shadow: 0 20px 20px -20px black;
   padding: 20px;
 }
-h1 {
+@media screen and (max-width: 769px) {
+  .offer-page .header {
+    font-size: 0.8em;
+    padding: 5px;
+  }
+  .offer-page .back {
+    margin: 15px;
+    font-size: 1.5em;
+  }
+}
+.offer-page h1 {
   margin: 10px 0 0 0;
 }
-.center {
+.offer-page .center {
   text-align: center;
   margin: 10px 0;
 }
-.flex {
+.offer-page .flex {
   display: flex;
   justify-content: space-around;
 }
-.diff-container {
+.offer-page .diff-container {
   margin: 20px 10px;
 }
-.diff-table {
+.offer-page .diff-table {
   width: 100%;
 }
-.diff-table td {
+.offer-page .diff-table td {
   width: 50%;
   vertical-align: top;
 }
-.diff-table .diff-line-has-changes .diff-line-removed {
+.offer-page .diff-table .diff-line-removed {
   background: rgb(255, 196, 193);
 }
-.diff-table .diff-line-has-changes .diff-line-added {
+.offer-page .diff-table .diff-line-added {
   background: rgb(181, 239, 219);
 }
-.diff-table .diff-chunk-removed {
+.offer-page .diff-table .diff-chunk-removed {
   background: rgb(255, 137, 131);
 }
-.diff-table .diff-chunk-added {
+.offer-page .diff-table .diff-chunk-added {
   background: rgb(107, 223, 184);
 }
 </style>

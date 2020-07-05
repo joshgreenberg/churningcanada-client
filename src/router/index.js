@@ -14,14 +14,14 @@ const routes = [
     component: Home,
   },
   {
-    path: '/:product',
+    path: '/:slug',
     name: 'Product',
     component: () => import('../views/Product.vue'),
     beforeEnter: async (to, from, next) => {
       if ($store.state.products.length === 0) {
         await $store.dispatch('init')
       }
-      if ($store.state.products.find(p => p.slug === to.params.product)) {
+      if ($store.state.products.find(p => p.slug === to.params.slug)) {
         next()
       } else {
         next({name: 'Home'})
