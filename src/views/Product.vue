@@ -1,35 +1,34 @@
 <template>
   <div class="offer-page">
-    <div v-if="!product">Loading...</div>
     <div class="header">
       <router-link :to="{name: 'Home'}" class="back">Back</router-link>
-      <div v-if="product">
-        <div class="center">
-          <h1>{{ product.name }}</h1>
-          <div>
-            <a :href="product.url" target="_blank">View current offer</a>
-          </div>
-        </div>
-        <div class="flex">
-          <div>
-            <div v-if="pastOffers.length">
-              Previous update:
-              <select v-model="prev">
-                <option
-                  v-for="offer in pastOffers"
-                  :key="offer.id"
-                  :value="offer"
-                >
-                  {{ offer.date }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div>Recent update: {{ cur.date }}</div>
+
+      <div class="center">
+        <h1>{{ product.name }}</h1>
+        <div>
+          <a :href="product.url" target="_blank">View current offer</a>
         </div>
       </div>
+      <div class="flex">
+        <div>
+          <div v-if="pastOffers.length">
+            Previous update:
+            <select v-model="prev">
+              <option
+                v-for="offer in pastOffers"
+                :key="offer.id"
+                :value="offer"
+              >
+                {{ offer.date }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>Recent update: {{ cur.date }}</div>
+      </div>
     </div>
-    <div class="diff-container" v-if="product">
+
+    <div class="diff-container">
       <table class="diff-table">
         <tbody>
           <tr v-for="(line, i) in lines" :key="i">
@@ -62,6 +61,7 @@
 
 <script>
 import diff from '@/lib/diff'
+import api from '@/api'
 
 export default {
   name: 'Product',
@@ -77,11 +77,14 @@ export default {
         p => p.slug === this.$route.params.slug
       )
     },
+    offers() {
+      return this.product.offers || []
+    },
     cur() {
-      return this.product.offers[0]
+      return this.offers[0]
     },
     pastOffers() {
-      return this.product.offers.slice(1)
+      return this.offers.slice(1)
     },
     lines() {
       const a = this.prev.footnotes
@@ -90,8 +93,8 @@ export default {
     },
   },
   created() {
-    if (this.product.offers.length > 1) {
-      this.prev = this.product.offers[1]
+    if (this.offers.length > 1) {
+      this.prev = this.offers[1]
     }
   },
 }

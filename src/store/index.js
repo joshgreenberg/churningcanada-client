@@ -9,20 +9,28 @@ export default new Vuex.Store({
     products: [],
   },
   mutations: {
-    setProducts(state, data) {
+    setRecentOffers(state, data) {
       state.products = data
+    },
+    setOffers(state, {slug, data}) {
+      state.products.find(p => p.slug === slug).offers = data
     },
   },
   actions: {
-    async init({commit}) {
-      await api.get('/').then(({data}) => {
+    async loadRecentOffers({commit}) {
+      await api.get('/offers').then(({data}) => {
         data.forEach(product => {
           if (product.url.match(/^REFERRAL_URL_/)) {
             const slug = product.slug.replace(/-referral$/, '')
             product.url = `${process.env.VUE_APP_SERVER_URL}/r/${slug}`
           }
         })
-        commit('setProducts', data)
+        commit('setRecentOffers', data)
+      })
+    },
+    async loadOffers({commit}, slug) {
+      await api.get(`/offers/${slug}`).then(({data}) => {
+        commit('setOffers', {slug, data})
       })
     },
   },

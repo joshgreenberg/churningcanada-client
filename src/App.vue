@@ -5,11 +5,7 @@
 </template>
 
 <script>
-export default {
-  created() {
-    this.$store.dispatch('init')
-  },
-}
+export default {}
 </script>
 
 <style>

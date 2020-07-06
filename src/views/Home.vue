@@ -3,7 +3,7 @@
     <h1>
       Offers
     </h1>
-    <div v-if="products.length === 0">Loading...</div>
+    <div v-if="recentOffers.length === 0">Loading...</div>
     <div v-else>
       <input type="text" v-model="search" placeholder="Filter by name" />
       <table class="table is-striped">
@@ -15,7 +15,7 @@
         </thead>
         <tbody>
           <OfferRow
-            v-for="product in filteredProducts"
+            v-for="product in filtered"
             :key="product.slug"
             :product="product"
           />
@@ -39,14 +39,19 @@ export default {
     }
   },
   computed: {
-    products() {
-      return this.$store.state.products.filter(p => p.offers.length > 0)
+    recentOffers() {
+      return this.$store.state.products
     },
-    filteredProducts() {
-      return this.products.filter(p =>
+    filtered() {
+      return this.recentOffers.filter(p =>
         p.name.toLowerCase().includes(this.search.toLowerCase())
       )
     },
+  },
+  created() {
+    if (this.recentOffers.length == 0) {
+      this.$store.dispatch('loadRecentOffers')
+    }
   },
 }
 </script>
