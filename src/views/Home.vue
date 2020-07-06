@@ -7,10 +7,26 @@
     <div v-else>
       <input type="text" v-model="search" placeholder="Filter by name" />
       <table class="table is-striped">
-        <thead>
+        <thead :class="{asc: dir == 1, desc: dir == -1}">
           <tr>
-            <th>Card / Offer</th>
-            <th>Last Updated</th>
+            <th>
+              <span
+                class="th"
+                :class="{sort: sort == 'name'}"
+                @click="setSort('name')"
+              >
+                Card / Offer
+              </span>
+            </th>
+            <th>
+              <span
+                class="th"
+                :class="{sort: sort == 'date'}"
+                @click="setSort('date')"
+              >
+                Last Updated
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -36,6 +52,8 @@ export default {
   data() {
     return {
       search: '',
+      sort: 'name',
+      dir: 1,
     }
   },
   computed: {
@@ -43,9 +61,20 @@ export default {
       return this.$store.state.products
     },
     filtered() {
-      return this.recentOffers.filter(p =>
-        p.name.toLowerCase().includes(this.search.toLowerCase())
-      )
+      return this.recentOffers
+        .filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()))
+        .sort((a, b) => {
+          const k = this.sort
+          return a[k] > b[k] ? this.dir : a[k] < b[k] ? -this.dir : 0
+        })
+    },
+  },
+  methods: {
+    setSort(key) {
+      if (this.sort == key) {
+        this.dir *= -1
+      }
+      this.sort = key
     },
   },
   created() {
@@ -79,10 +108,26 @@ export default {
   text-align: left;
 }
 .home-page .table td.date {
-  min-width: 7em;
+  min-width: 8em;
 }
 .home-page .expired,
 .home-page .expired * {
   color: lightgrey;
+}
+
+.home-page .th {
+  cursor: pointer;
+}
+.home-page .th:after {
+  display: inline-block;
+  content: '';
+  border-left: 0.5em solid transparent;
+  border-right: 0.5em solid transparent;
+}
+.home-page .asc .th.sort:after {
+  border-bottom: 0.8em solid #a17ac6;
+}
+.home-page .desc .th.sort:after {
+  border-top: 0.8em solid #a17ac6;
 }
 </style>
